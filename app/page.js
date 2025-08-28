@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 
 export default function Home() {
   const [setupDone, setSetupDone] = useState(false);
@@ -10,8 +11,25 @@ export default function Home() {
   const [players, setPlayers] = useState([]);
   const [pot, setPot] = useState(0);
   const [betAmounts, setBetAmounts] = useState({});
+  const [hasSavedSession, setHasSavedSession] = useState(false);
+  const [showLoadPrompt, setShowLoadPrompt] = useState(true);
 
-  // Wenn Anzahl Spieler geändert wird, Arrays anpassen
+  useEffect(() => {
+    const saved = Cookies.get('poker_session');
+    if (saved) setHasSavedSession(true);
+  }, []);
+
+  // Session speichern, wenn sich Spieler oder Pot ändern
+  useEffect(() => {
+    if (setupDone) {
+      Cookies.set(
+        'poker_session',
+        JSON.stringify({ players, pot }),
+        { expires: 1 } // 1 Tag
+      );
+    }
+  }, [players, pot, setupDone]);
+
   const handleNumPlayersChange = (n) => {
     setNumPlayers(n);
     setPlayerNames(Array(n).fill(''));
@@ -28,14 +46,25 @@ export default function Home() {
     setSetupDone(true);
   }
 
+  function loadSession() {
+    const saved = Cookies.get('poker_session');
+    if (saved) {
+      const { players, pot } = JSON.parse(saved);
+      setPlayers(players);
+      setPot(pot);
+      setSetupDone(true);
+    }
+    setShowLoadPrompt(false);
+  }
+
+  function newSession() {
+    Cookies.remove('poker_session');
+    setShowLoadPrompt(false);
+  }
+
   function bet(playerId) {
     const amount = parseInt(betAmounts[playerId]) || 0;
     if (amount <= 0) return;
-
-    if (players.find(p => p.id === playerId).balance < amount) {
-      alert('Nicht genug Guthaben!');
-      return;
-    }
 
     setPlayers(players.map(p =>
       p.id === playerId && p.balance >= amount
@@ -51,6 +80,31 @@ export default function Home() {
       p.id === playerId ? { ...p, balance: p.balance + pot } : p
     ));
     setPot(0);
+  }
+
+  if (showLoadPrompt && hasSavedSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+        <div className="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+          <h1 className="text-3xl font-bold mb-4">Poker Tracker</h1>
+          <p className="mb-4">Eine gespeicherte Session wurde gefunden. Möchtest du sie laden?</p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={loadSession}
+              className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg"
+            >
+              Laden
+            </button>
+            <button
+              onClick={newSession}
+              className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
+            >
+              Neues Spiel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!setupDone) {
