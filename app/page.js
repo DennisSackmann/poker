@@ -13,6 +13,8 @@ export default function Home() {
   const [betAmounts, setBetAmounts] = useState({});
   const [hasSavedSession, setHasSavedSession] = useState(false);
   const [showLoadPrompt, setShowLoadPrompt] = useState(true);
+  const [selectedWinners, setSelectedWinners] = useState([]);
+
 
   useEffect(() => {
     const saved = Cookies.get('poker_session');
@@ -81,6 +83,36 @@ export default function Home() {
     ));
     setPot(0);
   }
+
+  function toggleWinnerSelection(playerId) {
+  setSelectedWinners(prev =>
+    prev.includes(playerId)
+      ? prev.filter(id => id !== playerId)
+      : [...prev, playerId]
+  );
+}
+
+function assignPotToMultiple() {
+  if (selectedWinners.length === 0) return;
+
+  // Anteil pro Gewinner
+  const share = Math.floor(pot / selectedWinners.length);
+  const totalDistributed = share * selectedWinners.length;
+  const remaining = pot - totalDistributed;
+
+  setPlayers(players.map(p => 
+    selectedWinners.includes(p.id)
+      ? { ...p, balance: p.balance + share }
+      : p
+  ));
+
+  // Restbetrag bleibt im Pot
+  setPot(remaining);
+  setSelectedWinners([]);
+}
+
+
+
 
 if (showLoadPrompt && hasSavedSession) {
   const saved = JSON.parse(Cookies.get('poker_session') || '{}');
@@ -193,6 +225,15 @@ if (showLoadPrompt && hasSavedSession) {
             className="bg-gray-800 p-4 rounded-xl shadow-lg flex flex-col items-center"
           >
             <div className="text-lg font-semibold mb-2">{p.name}: {p.balance}</div>
+            <div className="flex gap-2 items-center mb-2">
+              <input
+                type="checkbox"
+                checked={selectedWinners.includes(p.id)}
+                onChange={() => toggleWinnerSelection(p.id)}
+                className="w-5 h-5"
+              />
+              <span>Als Gewinner markieren</span>
+            </div>
             <div className="flex gap-2">
               <input
                 type="number"
@@ -207,16 +248,17 @@ if (showLoadPrompt && hasSavedSession) {
               >
                 Setzen
               </button>
-              <button
-                onClick={() => assignWinner(p.id)}
-                className="bg-yellow-600 hover:bg-yellow-500 px-3 py-1 rounded-lg"
-              >
-                Pot zuordnen
-              </button>
             </div>
           </li>
         ))}
       </ul>
+      <button
+        onClick={assignPotToMultiple}
+        className="block mx-auto mt-4 bg-yellow-600 hover:bg-yellow-500 px-4 py-2 rounded-lg"
+      >
+        Pot an ausgewählte Spieler aufteilen
+      </button>
+
     </div>
   );
 }
