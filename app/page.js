@@ -82,30 +82,49 @@ export default function Home() {
     setPot(0);
   }
 
-  if (showLoadPrompt && hasSavedSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-        <div className="bg-gray-800 p-6 rounded-xl shadow-lg text-center">
-          <h1 className="text-3xl font-bold mb-4">Poker Tracker</h1>
-          <p className="mb-4">Eine gespeicherte Session wurde gefunden. Möchtest du sie laden?</p>
-          <div className="flex gap-4 justify-center">
-            <button
-              onClick={loadSession}
-              className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg"
-            >
-              Laden
-            </button>
-            <button
-              onClick={newSession}
-              className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
-            >
-              Neues Spiel
-            </button>
-          </div>
+if (showLoadPrompt && hasSavedSession) {
+  const saved = JSON.parse(Cookies.get('poker_session') || '{}');
+  const savedPlayers = saved.players || [];
+  const savedPot = saved.pot || 0;
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="bg-gray-800 p-6 rounded-xl shadow-lg text-center max-w-md w-full">
+        <h1 className="text-3xl font-bold mb-4">Poker Tracker</h1>
+        <p className="mb-4">Eine gespeicherte Session wurde gefunden. Möchtest du sie laden?</p>
+        
+        <div className="bg-gray-700 p-3 rounded mb-4 text-left">
+          <h2 className="text-xl font-semibold mb-2">Gespeicherter Stand:</h2>
+          <p className="mb-2">Pot: {savedPot}</p>
+          <ul className="space-y-1">
+            {savedPlayers.map(p => (
+              <li key={p.id} className="flex justify-between">
+                <span>{p.name}</span>
+                <span>{p.balance}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={loadSession}
+            className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg"
+          >
+            Laden
+          </button>
+          <button
+            onClick={newSession}
+            className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
+          >
+            Neues Spiel
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   if (!setupDone) {
     return (
