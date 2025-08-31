@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 
 export default function Home() {
   const [setupDone, setSetupDone] = useState(false);
-  const [numPlayers, setNumPlayers] = useState(2);
+  const [numPlayers, setNumPlayers] = useState(3);
   const [playerNames, setPlayerNames] = useState([]);
   const [playerBalances, setPlayerBalances] = useState([]);
   const [players, setPlayers] = useState([]);
@@ -217,7 +217,7 @@ if (showLoadPrompt && hasSavedSession) {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
       <h1 className="text-4xl font-bold text-center mb-6">Poker Tracker</h1>
-      <h2 className="text-xl mb-4 text-center">Pot: {pot}</h2>
+      <h2 className="text-2xl mb-4 text-center">Pot: {pot}</h2>
       <ul className="space-y-4 max-w-md mx-auto">
         {players.map(p => (
           <li
